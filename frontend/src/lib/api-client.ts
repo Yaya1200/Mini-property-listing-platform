@@ -2,7 +2,7 @@ import axios, { AxiosInstance } from 'axios';
 import Cookies from 'js-cookie';
 
 export const apiClient: AxiosInstance = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000',
+  baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001',
   withCredentials: true,
 });
 
