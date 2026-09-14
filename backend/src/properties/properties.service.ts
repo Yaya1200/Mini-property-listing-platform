@@ -15,6 +15,15 @@ export interface CreatePropertyDto {
   images: string[];
 }
 
+export class UploadedFileDto {
+  fieldname!: string;
+  originalname!: string;
+  encoding!: string;
+  mimetype!: string;
+  size!: number;
+  buffer!: Buffer;
+}
+
 export interface UpdatePropertyDto {
   title?: string;
   description?: string;
@@ -68,6 +77,10 @@ export class PropertiesService {
       price,
       images,
     } = createPropertyDto;
+
+    if (images && images.length > 0) {
+      this.validateImageUrls(images);
+    }
 
     const { data: property, error } = await this.supabase
       .from('properties')
@@ -133,6 +146,9 @@ export class PropertiesService {
     };
 
     if (updatePropertyDto.images) {
+      if (updatePropertyDto.images.length > 0) {
+        this.validateImageUrls(updatePropertyDto.images);
+      }
       updateData.images = JSON.stringify(updatePropertyDto.images);
     }
 
@@ -753,6 +769,99 @@ async contactOwner(
       updatedAt: property.updated_at,
       deletedAt: property.deleted_at,
     };
+  }
+
+  // ============================================================
+  // IMAGE VALIDATION & CLOUD STORAGE UPLOAD
+  // ============================================================
+
+  validateImageUrls(images: string[]): void {
+    if (!Array.isArray(images)) {
+      throw new BadRequestException('Images must be provided as an array of URLs');
+    }
+
+    const maxImages = 10;
+    if (images.length > maxImages) {
+      throw new BadRequestException(`Maximum of ${maxImages} images allowed per property`);
+    }
+
+    for (const url of images) {
+      if (typeof url !== 'string' || !url.trim()) {
+        throw new BadRequestException('Image URLs must be non-empty strings');
+      }
+
+      const trimmed = url.trim();
+      let parsed: URL;
+      try {
+        parsed = new URL(trimmed);
+      } catch {
+        throw new BadRequestException(`Invalid image URL format: "${trimmed}"`);
+      }
+
+      if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+        throw new BadRequestException(`Invalid image URL protocol: "${trimmed}". Only HTTP and HTTPS URLs are permitted.`);
+      }
+    }
+  }
+
+  async uploadImage(file: UploadedFileDto, ownerId: string): Promise<string> {
+    if (!file) {
+      throw new BadRequestException('No image file provided');
+    }
+
+    const maxFileSize = parseInt(this.configService.get<string>('MAX_IMAGE_SIZE') || '5242880', 10);
+    if (file.size > maxFileSize) {
+      const maxMb = (maxFileSize / (1024 * 1024)).toFixed(0);
+      throw new BadRequestException(`File size (${(file.size / (1024 * 1024)).toFixed(2)}MB) exceeds maximum allowed limit of ${maxMb}MB`);
+    }
+
+    const allowedTypes = (this.configService.get<string>('ALLOWED_IMAGE_TYPES') || 'image/jpeg,image/png,image/webp')
+      .split(',')
+      .map((t) => t.trim().toLowerCase());
+
+    if (!allowedTypes.includes(file.mimetype.toLowerCase())) {
+      throw new BadRequestException(
+        `Invalid file type (${file.mimetype}). Allowed types: ${allowedTypes.join(', ')}`,
+      );
+    }
+
+    const fileExt = file.originalname.split('.').pop()?.toLowerCase() || 'jpg';
+    const sanitizedFileName = `${Date.now()}-${Math.random().toString(36).substring(2, 9)}.${fileExt}`;
+    const filePath = `${ownerId}/${sanitizedFileName}`;
+
+    const { error } = await this.supabase.storage
+      .from('property-images')
+      .upload(filePath, file.buffer, {
+        contentType: file.mimetype,
+        upsert: false,
+      });
+
+    if (error) {
+      throw new BadRequestException(`Cloud storage upload failed: ${error.message}`);
+    }
+
+    const { data: publicUrlData } = this.supabase.storage
+      .from('property-images')
+      .getPublicUrl(filePath);
+
+    return publicUrlData.publicUrl;
+  }
+
+  async uploadImages(files: UploadedFileDto[], ownerId: string): Promise<string[]> {
+    if (!files || files.length === 0) {
+      throw new BadRequestException('No image files provided');
+    }
+
+    if (files.length > 10) {
+      throw new BadRequestException('Cannot upload more than 10 images at once');
+    }
+
+    const urls: string[] = [];
+    for (const file of files) {
+      const url = await this.uploadImage(file, ownerId);
+      urls.push(url);
+    }
+    return urls;
   }
 }
 

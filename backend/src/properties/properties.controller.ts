@@ -12,9 +12,13 @@ import {
   Request,
   HttpCode,
   HttpStatus,
+  UseInterceptors,
+  UploadedFile,
+  UploadedFiles,
 } from '@nestjs/common';
+import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 
-import { PropertiesService } from './properties.service.js';
+import { PropertiesService, UploadedFileDto } from './properties.service.js';
 
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard.js';
 import { RoleGuard } from '../auth/guards/role.guard.js';
@@ -125,6 +129,36 @@ export class PropertiesController {
   @Roles('admin')
   async disableProperty(@Param('id') id: string) {
     return this.propertiesService.disableProperty(id);
+  }
+
+  // ============================================================
+  // OWNER / ADMIN: UPLOAD IMAGE TO CLOUD STORAGE
+  // ============================================================
+
+  @Post('upload')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtAuthGuard, RoleGuard)
+  @Roles('property_owner', 'admin')
+  @UseInterceptors(FileInterceptor('file'))
+  async uploadImage(
+    @UploadedFile() file: UploadedFileDto,
+    @Request() req: any,
+  ) {
+    const url = await this.propertiesService.uploadImage(file, req.user.sub);
+    return { url };
+  }
+
+  @Post('upload-multiple')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtAuthGuard, RoleGuard)
+  @Roles('property_owner', 'admin')
+  @UseInterceptors(FilesInterceptor('files', 10))
+  async uploadImages(
+    @UploadedFiles() files: UploadedFileDto[],
+    @Request() req: any,
+  ) {
+    const urls = await this.propertiesService.uploadImages(files, req.user.sub);
+    return { urls };
   }
 
   // ============================================================
