@@ -1,6 +1,7 @@
 'use client';
 
 import { useLogin } from '@/hooks/useAuth';
+import { AxiosError } from 'axios';
 import Link from 'next/link';
 import { useState } from 'react';
 
@@ -8,6 +9,7 @@ export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const { mutate: login, isPending, error } = useLogin();
+  const loginError = error as AxiosError<{ message?: string }> | null;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -62,7 +64,7 @@ export default function LoginPage() {
           {error && (
             <div className="rounded-md bg-red-50 p-4">
               <p className="text-sm font-medium text-red-800">
-                {(error as any)?.response?.data?.message || 'Login failed'}
+                {loginError?.response?.data?.message || 'Login failed'}
               </p>
             </div>
           )}
@@ -77,7 +79,7 @@ export default function LoginPage() {
 
           <div className="text-center">
             <p className="text-sm text-gray-600">
-              Don't have an account?{' '}
+              Do not have an account?{' '}
               <Link href="/register" className="font-medium text-blue-600 hover:text-blue-500">
                 Register here
               </Link>
