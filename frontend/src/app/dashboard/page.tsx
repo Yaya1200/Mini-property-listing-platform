@@ -167,12 +167,14 @@ function UserDashboardContent() {
             </div>
           ) : (
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              {favorites.map((favorite) => (
-                <PropertyCard
-                  key={favorite.id}
-                  property={favorite.properties ?? favorite}
-                />
-              ))}
+              {favorites.map((favorite) =>
+                favorite.properties ? (
+                  <PropertyCard
+                    key={favorite.id}
+                    property={favorite.properties}
+                  />
+                ) : null,
+              )}
             </div>
           )}
         </section>
