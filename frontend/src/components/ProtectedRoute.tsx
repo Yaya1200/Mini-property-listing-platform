@@ -1,30 +1,42 @@
-'use client';
+"use client";
 
-import { useCurrentUser } from '@/hooks/useAuth';
-import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
+import { useAuth } from "@/context/AuthContext";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 
-export function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { data: user, isLoading } = useCurrentUser();
+export function ProtectedRoute({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const { user, isLoading } = useAuth();
   const router = useRouter();
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    if (!isLoading && !user) {
-      router.push('/login');
-    }
-  }, [user, isLoading, router]);
+    setMounted(true);
+  }, []);
 
-  if (isLoading) {
+  useEffect(() => {
+    if (mounted && !isLoading && !user) {
+      router.push("/");
+    }
+  }, [mounted, user, isLoading, router]);
+
+  // Don't render auth-dependent content until the browser has mounted.
+  if (!mounted || isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
+      <div className="flex min-h-screen items-center justify-center">
         <p>Loading...</p>
       </div>
     );
   }
 
+  // Unauthenticated users are being redirected.
   if (!user) {
     return null;
   }
 
   return <>{children}</>;
 }
+

@@ -66,7 +66,7 @@ export function PropertyCard({ property }: PropertyCardProps) {
           </p>
           <div className="mt-4 flex items-center justify-between">
             <span className="text-lg font-bold text-blue-600">
-              ${property.price.toLocaleString()}
+              {property.price.toLocaleString()} Birr
             </span>
             <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">
               {property.status}

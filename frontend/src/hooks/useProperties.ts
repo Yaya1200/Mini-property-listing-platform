@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { propertiesService } from '@/services/properties.service';
+import type { UpdatePropertyRequest } from '@/services/properties.service';
 
 export const useProperties = (
   page = 1,
@@ -48,7 +49,7 @@ export const useUpdateProperty = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: any }) =>
+    mutationFn: ({ id, data }: { id: string; data: UpdatePropertyRequest }) =>
       propertiesService.updateProperty(id, data),
     onSuccess: (data) => {
       queryClient.setQueryData(['property', data.id], data);

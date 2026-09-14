@@ -10,6 +10,8 @@ export interface RegisterRequest {
   email: string;
   password: string;
   name: string;
+  role?: 'admin' | 'property_owner' | 'regular_user';
+  adminCode?: string;
 }
 
 export interface AuthResponse {

@@ -12,11 +12,34 @@ export const useLogin = () => {
 
   return useMutation({
     mutationFn: authService.login,
+
     onSuccess: (data) => {
       setToken(data.accessToken);
       setUser(data.user);
-      queryClient.invalidateQueries({ queryKey: ['user'] });
-      router.push('/dashboard');
+
+      queryClient.invalidateQueries({
+        queryKey: ['user'],
+      });
+
+      // Redirect based on the authenticated user's role.
+      switch (data.user.role) {
+        case 'admin':
+          router.push('/admin');
+          break;
+
+        case 'property_owner':
+          router.push('/owner');
+          break;
+
+        case 'regular_user':
+          router.push('/dashboard');
+          break;
+
+        default:
+          // Safe fallback if an unexpected role is returned.
+          router.push('/');
+          break;
+      }
     },
   });
 };
@@ -28,17 +51,40 @@ export const useRegister = () => {
 
   return useMutation({
     mutationFn: authService.register,
+
     onSuccess: (data) => {
       setToken(data.accessToken);
       setUser(data.user);
-      queryClient.invalidateQueries({ queryKey: ['user'] });
-      router.push('/dashboard');
+
+      queryClient.invalidateQueries({
+        queryKey: ['user'],
+      });
+
+      // New users go to the appropriate page based on their role.
+      switch (data.user.role) {
+        case 'admin':
+          router.push('/admin');
+          break;
+
+        case 'property_owner':
+          router.push('/owner');
+          break;
+
+        case 'regular_user':
+          router.push('/dashboard');
+          break;
+
+        default:
+          router.push('/');
+          break;
+      }
     },
   });
 };
 
 export const useCurrentUser = () => {
   const { setUser } = useAuthStore();
+
   const token = useAuthStore((state) => state.getToken());
 
   const query = useQuery({
@@ -67,3 +113,4 @@ export const useLogout = () => {
     router.push('/');
   };
 };
+
