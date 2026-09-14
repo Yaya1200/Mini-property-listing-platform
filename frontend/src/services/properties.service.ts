@@ -98,4 +98,26 @@ export const propertiesService = {
   async deleteProperty(id: string): Promise<void> {
     await apiClient.delete(`/properties/${id}`);
   },
+
+  async uploadImage(file: File): Promise<string> {
+    const formData = new FormData();
+    formData.append('file', file);
+    const response = await apiClient.post<{ url: string }>('/properties/upload', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response.data.url;
+  },
+
+  async uploadImages(files: File[]): Promise<string[]> {
+    const formData = new FormData();
+    files.forEach((file) => formData.append('files', file));
+    const response = await apiClient.post<{ urls: string[] }>('/properties/upload-multiple', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response.data.urls;
+  },
 };
