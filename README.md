@@ -1,441 +1,520 @@
 # Mini Multi-Tenant Property Listing Platform
 
-A full-stack property listing platform with role-based access control, built with modern technologies for scalability and maintainability.
+A full-stack property listing platform built as a practical assessment for an Intern Staff Developer role.
 
-## 🎯 Project Overview
+The platform supports multiple user roles, property management, image uploads, favorites, property publishing, administration, and owner contact functionality.
 
-This is a simplified but production-ready version of a real-world property listing system. Users can browse published properties, save favorites, and property owners can list properties with images.
+## Features
 
-**Key Features:**
-- 👥 Three user roles: Admin, Property Owner, Regular User
-- 🏠 Property management with draft/published/archived states
-- ❤️ Favorites with real-time sync across tabs
-- 🖼️ Multiple image support per property
-- 🔐 JWT-based authentication with role-based access control
-- 📱 Fully responsive design
-- 🚀 Production-ready deployment
+### Authentication & Authorization
 
-## 📦 Tech Stack
+* User registration and login
+* JWT-based authentication
+* Role-based access control
+* Three user roles:
 
-### Backend
-- **Framework:** NestJS (TypeScript)
-- **Database:** Supabase PostgreSQL
-- **Authentication:** JWT + bcrypt
-- **Storage:** Supabase Storage
-- **Validation:** class-validator
+  * `regular_user`
+  * `property_owner`
+  * `admin`
+* Protected API routes
+* Role-based frontend dashboards
+
+### Property Management
+
+* Property owners can create properties as drafts
+* Owners can edit draft properties
+* Owners can publish valid properties
+* Published properties cannot be edited
+* Property images can be uploaded to Supabase Storage
+* Multiple images are supported
+* Properties can be filtered and paginated
+* Properties support the following states:
+
+  * `draft`
+  * `published`
+  * `archived`
+* Soft deletion is used for property records
+
+### Regular Users
+
+* Browse published properties
+* View property details
+* Add/remove favorites
+* Check favorite status
+* Contact property owners
+
+### Administration
+
+* View all properties
+* View basic property statistics
+* Disable/archive properties
 
 ### Frontend
-- **Framework:** Next.js (TypeScript)
-- **Styling:** Tailwind CSS
-- **State:** Zustand + TanStack Query
-- **HTTP:** Axios
-- **Package Manager:** npm
 
-### Infrastructure
-- **Frontend Hosting:** Vercel (recommended) / Netlify
-- **Backend Hosting:** Railway / Render / Fly.io
-- **Database:** Supabase PostgreSQL (managed)
-- **Storage:** Supabase Storage
-
-## 🎯 Tech Stack Rationale
-
-### Why NestJS for Backend?
-✅ **Pros:**
-- Built-in TypeScript support with excellent DX
-- Modular architecture (Auth, Properties, Favorites modules)
-- Dependency injection out-of-the-box
-- Built-in validation pipes (class-validator)
-- Excellent for team scalability
-- Large ecosystem and community
-
-❌ **Cons:**
-- Steeper learning curve than Express
-- More boilerplate than lightweight frameworks
-
-**Decision:** NestJS chosen because this is meant to be a scalable system. The modular architecture and built-in features make it ideal for multi-tenant applications with role-based access control.
-
-### Why Next.js for Frontend?
-✅ **Pros:**
-- Server-side rendering improves SEO for property listings
-- Built-in image optimization
-- API routes simplify development
-- Excellent TypeScript support
-- Vercel integration for easy deployment
-- File-based routing reduces configuration
-
-❌ **Cons:**
-- More opinionated than pure React
-- Build complexity vs simple React app
-
-**Decision:** Next.js provides SEO benefits crucial for a listing platform. Properties need to be discoverable by search engines.
-
-### Why TanStack Query + Zustand?
-✅ **Query (Server State):**
-- Perfect for caching API data
-- Automatic refetching and invalidation
-- Cross-tab synchronization
-- Deduplication of requests
-
-✅ **Zustand (Auth State):**
-- Lightweight and simple
-- Perfect for authentication state
-- No boilerplate like Redux
-- Easy persistence to localStorage/cookies
-
-**Decision:** Separation of concerns. Query handles remote data, Zustand handles local auth state. This is a proven pattern in modern React apps.
-
-### Why Supabase?
-✅ **Pros:**
-- PostgreSQL (industry standard)
-- Real-time capabilities (for future enhancements)
-- Built-in authentication (can be used later)
-- Storage for images
-- Row-level security (implemented)
-- Free tier suitable for MVP
-
-❌ **Cons:**
-- Vendor lock-in
-- Less control than self-hosted
-
-**Decision:** Supabase provides a complete backend-as-a-service without needing separate services for auth, DB, and storage.
-
-## 🏗️ System Architecture
-
-```
-┌─────────────────────────────────────────────────────────┐
-│                    Frontend (Next.js)                   │
-│  • User Dashboard    • Property Listings                │
-│  • Auth Pages        • Owner Dashboard                  │
-│  (Vercel/Netlify)                                      │
-└────────────────────┬────────────────────────────────────┘
-                     │ HTTPS API Calls
-                     │ JWT Auth Token
-                     ▼
-┌─────────────────────────────────────────────────────────┐
-│              Backend API (NestJS)                       │
-│  • Auth Module       • Properties Module               │
-│  • Favorites Module  • Role-based Guards               │
-│  (Railway/Render/Fly.io)                               │
-└────────────────────┬────────────────────────────────────┘
-                     │ SQL Queries
-                     ▼
-┌─────────────────────────────────────────────────────────┐
-│         Database & Storage (Supabase)                  │
-│  • PostgreSQL        • Row-Level Security             │
-│  • Storage for Images                                 │
-└─────────────────────────────────────────────────────────┘
-```
-
-## 🔑 Key Technical Decisions & Tradeoffs
-
-### 1. Authentication: JWT vs OAuth
-**Decision:** JWT with httpOnly cookies
-
-**Reasoning:**
-- JWT: Stateless, no session store needed, works well with APIs
-- httpOnly cookies: Secure against XSS attacks
-- Token refresh: Can implement with short-lived access tokens
-
-**Alternative:** Could use Supabase Auth (built-in), but implemented from scratch for learning
-
-### 2. Database Design: Relational vs Document
-**Decision:** Relational (PostgreSQL)
-
-**Reasoning:**
-- Properties have clear relationships (owner → many properties)
-- Favorites are junction tables (user ↔ property)
-- SQL transactions for publishing property atomicity
-- ACID compliance ensures data integrity
-
-**Not suitable:** Document DB (MongoDB) because relationships are strict
-
-### 3. Image Storage: Local vs Cloud
-**Decision:** Cloud Storage (Supabase)
-
-**Reasoning:**
-- Production servers shouldn't store files locally
-- Cloud storage auto-scales with demand
-- CDN integration for fast delivery
-- No disk space constraints
-
-**Implementation:** Image URLs stored in database, actual files in Supabase Storage
-
-### 4. API Design: REST vs GraphQL
-**Decision:** REST with pagination
-
-**Reasoning:**
-- Simpler to implement than GraphQL
-- Better for traditional property listing use cases
-- Easier to cache and optimize with HTTP
-- Query parameters (location, price) easier than GraphQL
-
-**If scaling:** Could migrate to GraphQL later
-
-### 5. State Management: Context vs Redux vs Zustand
-**Decision:** Zustand (auth) + TanStack Query (server state)
-
-**Reasoning:**
-- No prop drilling
-- No boilerplate (vs Redux)
-- Lightweight (Zustand is <1KB)
-- TanStack Query handles all server state sync
-
-### 6. Soft Deletes vs Hard Deletes
-**Decision:** Soft deletes (deletedAt field)
-
-**Reasoning:**
-- Properties can be "restored" if needed
-- Audit trail: know when things were deleted
-- Historical data preserved for analytics
-- Business requirement: properties shouldn't fully disappear
-
-## ⚠️ Hardest Technical Challenges
-
-### 1. **Cross-Tab Favorites Synchronization**
-**Problem:** User adds favorite in Tab A, needs to reflect in Tab B instantly.
-
-**Solution:** TanStack Query's BroadcastChannel integration
-- Query automatically syncs across tabs
-- No manual localStorage polling needed
-- Efficient compared to localStorage watch
-
-**Lesson Learned:** Not a trivial feature, browser APIs have limits
-
-### 2. **Published Properties Cannot Be Edited**
-**Problem:** Ensuring immutability of published properties
-
-**Solution:** Database-level validation
-- Check status before allowing updates
-- Return 400 Bad Request if trying to update published
-- Business logic enforced at service layer too
-
-**Challenge:** Ensuring consistency across distributed calls
-
-### 3. **JWT Token Expiration & Refresh**
-**Problem:** Tokens expire, need seamless refresh without user knowing
-
-**Solution:** Axios interceptor pattern
-- Check if 401, clear token and redirect to login
-- (Could implement refresh token for better UX)
-
-**Lesson Learned:** Security vs convenience tradeoff
-
-### 4. **Role-Based Access Control at Scale**
-**Problem:** Different roles need different API responses
-
-**Solution:** Role Guards + RLS in Database
-- NestJS guards check JWT claims
-- Database RLS ensures no SQL injection workarounds
-- Defense in depth approach
-
-## 📊 What Would Break First at Scale?
-
-### Critical Bottlenecks (by priority)
-
-1. **Database Connection Pool** ⚠️ CRITICAL
-   - Current: Using default Supabase pool
-   - Fix: Implement connection pooling (PgBouncer)
-   - Symptom: "Too many connections" errors at 100+ concurrent users
-
-2. **N+1 Query Problem** 🔴 HIGH
-   - Current: Getting properties might load owner data separately
-   - Fix: Implement eager loading / JOINs
-   - Symptom: 10x slower queries with 1000 properties
-
-3. **Image Processing** 🟡 MEDIUM
-   - Current: Storing full-size images
-   - Fix: Image resizing, compression, CDN caching
-   - Symptom: Slow load times, high bandwidth costs
-
-4. **No Caching** 🟡 MEDIUM
-   - Current: TanStack Query client-side only
-   - Fix: Redis cache for popular properties
-   - Symptom: Same data fetched repeatedly
-
-5. **Search Performance** 🟡 MEDIUM
-   - Current: ILIKE queries on location
-   - Fix: Full-text search or Elasticsearch
-   - Symptom: Slow queries with 100k+ properties
-
-6. **API Rate Limiting** 🟢 LOW
-   - Current: No rate limiting
-   - Fix: Implement rate limit middleware
-   - Symptom: DDoS vulnerability
-
-### Recommended Improvements
-
-```typescript
-// Example: Fix for N+1 query problem
-// Before (2 queries):
-const properties = await db.properties.find();
-properties.forEach(p => p.owner = await db.users.findOne(p.ownerId));
-
-// After (1 query with JOIN):
-const properties = await db.properties
-  .select('*, owner:user_id(*)')
-  .find();
-```
-
-## 📈 Scaling Strategy
-
-**Phase 1 (1-10k users):** Current architecture works
-**Phase 2 (10k-100k users):**
-- Add Redis cache
-- Optimize queries with indices
-- CDN for images
-- Read replicas for database
-
-**Phase 3 (100k+ users):**
-- Microservices architecture
-- Event-driven (message queues)
-- Search service (Elasticsearch)
-- File processing queue (Bull/Agenda)
-
-## 🚀 Deployment Architecture
-
-### Frontend
-```
-Git Push → Vercel → Build → Deploy to CDN → Users
-```
-
-### Backend
-```
-Git Push → Railway → Build → Docker → Run → Users
-         ↓
-    PostgreSQL (Supabase)
-```
-
-### Database
-```
-Supabase Dashboard → PostgreSQL Cluster → Backups
-                  → Storage (Images)
-```
-
-## 🔐 Security Measures
-
-✅ **Implemented:**
-- JWT authentication
-- bcrypt password hashing
-- httpOnly cookies
-- Row-level security in database
-- CORS protection
-- Helmet.js headers
-
-❌ **Not Implemented (for MVP):**
-- Rate limiting
-- CSRF protection
-- Input sanitization (class-validator does basic)
-- OAuth2 social login
-- 2FA
-
-## 📚 Documentation Standards
-
-- Code comments: Only for WHY, not WHAT
-- Function signatures: TypeScript provides types
-- Complex business logic: Explained with examples
-- API endpoints: Documented in Postman collection
-
-## ✅ Done & ❌ Not Done
-
-### Completed
-- ✅ Full authentication system
-- ✅ Role-based access control
-- ✅ Property CRUD operations
-- ✅ Soft deletes
-- ✅ Favorites feature
-- ✅ Pagination and filtering
-- ✅ Frontend UI with all pages
-- ✅ Production-ready deployment configs
-
-### Not Implemented (Future)
-- ❌ Image uploading (use external URLs)
-- ❌ Email verification
-- ❌ Admin analytics dashboard
-- ❌ Messaging between users
-- ❌ Reviews/ratings
-- ❌ Advanced search
-- ❌ Payment processing
-
-## 🎓 Lessons Learned
-
-1. **Zustand > Redux for simple auth:** Much less boilerplate, same functionality
-2. **TanStack Query is worth it:** Handles caching complexity automatically
-3. **TypeScript catches bugs early:** Especially in API calls
-4. **Database design matters:** Good schema prevents 90% of scaling issues
-5. **Soft deletes are important:** Don't permanently delete user data
-
-## 📞 Support & Issues
-
-For issues:
-1. Check error logs: `npm run dev` shows detailed errors
-2. Backend logs: Check Railway/Render dashboard
-3. Database logs: Check Supabase dashboard
-4. Network: Check browser DevTools → Network tab
-
-## 📄 File Structure
-
-```
-Mini-property-listing-platform/
-├── backend/
-│   ├── src/
-│   │   ├── auth/
-│   │   ├── properties/
-│   │   ├── favorites/
-│   │   ├── config/
-│   │   └── main.ts
-│   ├── database/
-│   │   └── schema.sql
-│   └── BACKEND_README.md
-│
-├── frontend/
-│   ├── src/
-│   │   ├── app/
-│   │   ├── components/
-│   │   ├── hooks/
-│   │   ├── services/
-│   │   ├── store/
-│   │   └── lib/
-│   └── FRONTEND_README.md
-│
-├── docs/
-│   ├── API.postman_collection.json
-│   └── DEPLOYMENT.md
-│
-└── README.md (this file)
-```
-
-## 🚀 Quick Start
-
-### Backend
-```bash
-cd backend
-npm install
-npm run start:dev
-# Runs on http://localhost:3000
-```
-
-### Frontend
-```bash
-cd frontend
-npm install
-npm run dev
-# Runs on http://localhost:3000
-```
-
-### Database
-1. Create Supabase project
-2. Copy SQL from `backend/database/schema.sql`
-3. Paste in Supabase SQL Editor
-4. Run to create tables
-
-## 📞 Contact & Questions
-
-This is an educational project demonstrating:
-- NestJS patterns
-- Next.js best practices
-- Full-stack TypeScript development
-- Production deployment workflows
+* Responsive Next.js interface
+* Public property listing
+* Property detail pages
+* Role-specific dashboards
+* Loading and error states
+* Optimistic favorite interactions
+* Authentication persistence
+* Favorites synchronization across browser tabs
 
 ---
 
-**Built with ❤️ for learning and demonstration purposes.**
+# Tech Stack
+
+## Backend
+
+* **NestJS**
+* **PostgreSQL via Supabase**
+* **JWT**
+* **bcrypt**
+* **Supabase Storage**
+* **Axios / REST API**
+* **class-validator** where applicable
+* **TypeScript**
+
+## Frontend
+
+* **Next.js 16**
+* **React**
+* **TypeScript**
+* **Tailwind CSS**
+* **Zustand**
+* **TanStack Query**
+* **Axios**
+* **js-cookie**
+
+## Infrastructure
+
+* **Vercel** — frontend deployment
+* **Render** — backend deployment
+* **Supabase** — PostgreSQL database and object storage
+
+---
+
+# Why These Technologies?
+
+## NestJS
+
+NestJS provides a structured backend architecture using modules, controllers, services, guards, and dependency injection.
+
+This made it suitable for implementing authentication, role-based authorization, and property-related business logic without putting all logic inside controllers.
+
+## Next.js
+
+Next.js provides routing, server/client rendering capabilities, and a good foundation for building the public property listing and role-based dashboards.
+
+## TanStack Query + Zustand
+
+TanStack Query is used for server-state management such as property data and API requests.
+
+Zustand is used for client-side state such as authentication/user state and favorite-related UI state.
+
+Keeping server state and client state separate makes the frontend easier to reason about.
+
+## Supabase
+
+Supabase provides managed PostgreSQL and object storage.
+
+PostgreSQL fits the relational nature of users, properties, and favorites, while Supabase Storage provides a practical solution for property images.
+
+---
+
+# Architecture
+
+```text
+                         ┌─────────────────────┐
+                         │       Users         │
+                         └──────────┬──────────┘
+                                    │
+                                    ▼
+                         ┌─────────────────────┐
+                         │      Next.js        │
+                         │      Frontend       │
+                         │       Vercel        │
+                         └──────────┬──────────┘
+                                    │ REST API
+                                    ▼
+                         ┌─────────────────────┐
+                         │       NestJS        │
+                         │       Backend       │
+                         │       Render        │
+                         └──────────┬──────────┘
+                                    │
+                         ┌──────────┴──────────┐
+                         ▼                     ▼
+                ┌─────────────────┐   ┌─────────────────┐
+                │ Supabase        │   │ Supabase        │
+                │ PostgreSQL      │   │ Storage         │
+                │ Database        │   │ Property Images │
+                └─────────────────┘   └─────────────────┘
+```
+
+---
+
+# Backend Architecture
+
+The backend follows a modular NestJS structure.
+
+```text
+backend/
+├── src/
+│   ├── auth/
+│   ├── properties/
+│   ├── favorites/
+│   ├── admin/
+│   ├── common/
+│   ├── app.module.ts
+│   └── main.ts
+├── package.json
+└── ...
+```
+
+The API uses:
+
+* Controllers for HTTP endpoints
+* Services for business logic
+* JWT authentication guards
+* Role guards
+* Role decorators
+* DTO validation
+* Supabase for persistence and storage
+
+---
+
+# Authorization Model
+
+| Role           | Permissions                                                           |
+| -------------- | --------------------------------------------------------------------- |
+| Regular User   | Browse published properties, favorites, contact owners                |
+| Property Owner | Create, edit drafts, upload images, publish and manage own properties |
+| Admin          | View all properties, view metrics, disable properties                 |
+
+Authorization is enforced on protected backend routes using JWT authentication and role guards.
+
+---
+
+# Property Lifecycle
+
+```text
+             ┌──────────────┐
+             │     Draft    │
+             └──────┬───────┘
+                    │
+              Publish validation
+                    │
+                    ▼
+             ┌──────────────┐
+             │   Published  │
+             └──────┬───────┘
+                    │
+              Admin disables
+                    │
+                    ▼
+             ┌──────────────┐
+             │   Archived   │
+             └──────────────┘
+```
+
+A property must contain the required information and at least one image before it can be published.
+
+Published properties cannot be edited through the normal property update flow.
+
+---
+
+# API Overview
+
+Base URL for local development:
+
+```text
+http://localhost:3003
+```
+
+Main API groups:
+
+```text
+/auth
+/properties
+/favorites
+```
+
+See:
+
+```text
+docs/API.postman_collection.json
+```
+
+for the complete Postman collection.
+
+---
+
+# Environment Variables
+
+Create a `.env` file inside the backend:
+
+```env
+NODE_ENV=development
+PORT=3003
+
+SUPABASE_URL=your_supabase_project_url
+SUPABASE_KEY=your_supabase_anon_key
+SUPABASE_SERVICE_KEY=your_supabase_service_role_key
+
+JWT_SECRET=your_jwt_secret
+JWT_EXPIRATION=7d
+
+CORS_ORIGIN=http://localhost:3000
+
+MAX_IMAGE_SIZE=5242880
+ALLOWED_IMAGE_TYPES=image/jpeg,image/png,image/webp
+```
+
+For the frontend:
+
+```env
+NEXT_PUBLIC_API_URL=http://localhost:3003
+```
+
+Do not commit `.env` files or secret keys to Git.
+
+---
+
+# Local Development
+
+## 1. Clone the repository
+
+```bash
+git clone <your-repository-url>
+cd Mini-property-listing-platform
+```
+
+## 2. Install backend dependencies
+
+```bash
+cd backend
+npm install
+```
+
+Configure the backend `.env` file.
+
+Start the backend:
+
+```bash
+npm run start:dev
+```
+
+The API runs on:
+
+```text
+http://localhost:3003
+```
+
+## 3. Install frontend dependencies
+
+Open another terminal:
+
+```bash
+cd frontend
+npm install
+```
+
+Create the frontend `.env.local`:
+
+```env
+NEXT_PUBLIC_API_URL=http://localhost:3003
+```
+
+Start the frontend:
+
+```bash
+npm run dev
+```
+
+The frontend runs on:
+
+```text
+http://localhost:3000
+```
+
+---
+
+# Deployment
+
+The planned deployment architecture is:
+
+```text
+GitHub
+   │
+   ├── frontend/
+   │       │
+   │       ▼
+   │     Vercel
+   │
+   └── backend/
+           │
+           ▼
+         Render
+           │
+           ▼
+        Supabase
+      ┌────┴────┐
+      │         │
+   Database   Storage
+```
+
+The production frontend should use:
+
+```env
+NEXT_PUBLIC_API_URL=https://<your-render-backend>.onrender.com
+```
+
+The backend CORS configuration should allow the deployed Vercel frontend URL.
+
+Production secrets should be configured through the hosting provider's environment-variable settings rather than committed to the repository.
+
+---
+
+# Technical Decisions
+
+## 1. JWT Authentication
+
+JWT authentication was selected because the application requires a lightweight authentication mechanism for a REST API.
+
+The frontend persists the authentication token using a cookie and sends the token as a Bearer token when making authenticated API requests.
+
+The backend validates the JWT before allowing access to protected endpoints.
+
+## 2. PostgreSQL
+
+PostgreSQL was selected because the application contains relational data such as users, properties, and favorites.
+
+## 3. Supabase Storage
+
+Property images are stored in Supabase Storage rather than directly in the database.
+
+The database stores the image URLs associated with each property.
+
+## 4. REST API
+
+A REST API provides a clear separation between the Next.js frontend and NestJS backend.
+
+## 5. Zustand + TanStack Query
+
+TanStack Query handles API/server state while Zustand handles client-side application state.
+
+## 6. Soft Deletion
+
+Property records use deletion/archive state rather than immediately removing records from the database.
+
+This helps preserve historical data and prevents accidental permanent deletion.
+
+---
+
+# Important Business Rules
+
+### Publishing
+
+A property can only be published when:
+
+* Title is provided
+* Description is provided
+* Location is provided
+* Price is greater than zero
+* At least one image exists
+* Property is currently a draft
+
+### Editing
+
+Published properties cannot be edited through the normal update endpoint.
+
+### Ownership
+
+Property owners can manage only their own properties.
+
+### Administration
+
+Administrators can view the complete property list and disable properties.
+
+---
+
+# Error Handling
+
+The API uses HTTP status codes to communicate request results.
+
+Examples include:
+
+```text
+200 OK
+201 Created
+400 Bad Request
+401 Unauthorized
+403 Forbidden
+404 Not Found
+409 Conflict
+```
+
+The frontend displays appropriate loading and error states for API operations.
+
+---
+
+# Current Limitations / Future Improvements
+
+The following features could be added in a larger production system:
+
+* API rate limiting
+* CSRF protection depending on the final authentication architecture
+* OAuth/social login
+* Two-factor authentication
+* Advanced property search
+* Full-text search
+* Image resizing/optimization pipeline
+* Automated tests with broader coverage
+* Centralized logging and monitoring
+* Redis caching for high-traffic endpoints
+* More advanced analytics
+* Refresh-token rotation
+
+These are intentionally outside the scope of the current practical assessment.
+
+---
+
+# Documentation
+
+API documentation:
+
+```text
+docs/API.postman_collection.json
+```
+
+Deployment notes:
+
+```text
+DEPLOYMENT.md
+```
+
+---
+
+# Project Status
+
+The core application functionality is implemented and tested locally.
+
+Completed:
+
+* Authentication
+* Role-based authorization
+* Property creation
+* Property editing
+* Property publishing
+* Property image uploads
+* Property listing and filtering
+* Favorites
+* Contact owner functionality
+* Admin property management
+* Admin metrics
+* Responsive frontend
+* Loading/error states
+* API documentation
+
+
