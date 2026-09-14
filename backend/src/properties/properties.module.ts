@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+
 import { PropertiesService } from './properties.service.js';
 import { PropertiesController } from './properties.controller.js';
 import { AuthModule } from '../auth/auth.module.js';
@@ -10,3 +11,4 @@ import { AuthModule } from '../auth/auth.module.js';
   exports: [PropertiesService],
 })
 export class PropertiesModule {}
+
