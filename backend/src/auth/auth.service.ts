@@ -8,7 +8,8 @@ export interface RegisterDto {
   email: string;
   password: string;
   name: string;
-  role?: string;
+  role?: string; // 'admin' | 'property_owner' | 'regular_user'
+  adminCode?: string; // secret code required for admin registration
 }
 
 export interface LoginDto {
@@ -31,7 +32,21 @@ export class AuthService {
   }
 
   async register(registerDto: RegisterDto) {
-    const { email, password, name, role = 'regular_user' } = registerDto;
+    const { email, password, name, role, adminCode } = registerDto;
+    let userRole: string;
+    // Admin can only be created if a valid secret code is provided
+    if (role === 'admin') {
+      const secret = this.configService.get<string>('ADMIN_SIGNUP_CODE');
+      if (!secret || adminCode !== secret) {
+        throw new BadRequestException('Invalid admin signup code');
+      }
+      userRole = 'admin';
+    } else if (role === 'property_owner') {
+      userRole = 'property_owner';
+    } else {
+      userRole = 'regular_user';
+    }
+
 
     // Check if user already exists
     const { data: existingUser, error: checkError } = await this.supabase
@@ -54,7 +69,7 @@ export class AuthService {
           email,
           name,
           password_hash: hashedPassword,
-          role,
+          role: userRole,
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
         },
@@ -63,8 +78,9 @@ export class AuthService {
       .single();
 
     if (error) {
-      throw new BadRequestException('Failed to register user');
-    }
+  console.error('Supabase registration error:', error);
+  throw new BadRequestException(error.message || 'Failed to register user');
+}
 
     return this.generateTokens(user);
   }
