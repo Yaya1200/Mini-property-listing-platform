@@ -1,7 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
+import { propertiesService } from '@/services/properties.service';
+import { useAuthStore } from '@/store/auth.store';
+import { useAuth } from '@/context/AuthContext';
+import { authService } from '@/services/auth.service';
 
 type PropertyStatus = "draft" | "published" | "archived";
 
@@ -17,37 +21,39 @@ createdAt: string;
 updatedAt: string;
 }
 
-const initialProperties: Property[] = [
-{
-id: "1",
-title: "Modern Apartment",
-description: "A comfortable modern apartment.",
-location: "Addis Ababa",
-price: 25000,
-status: "published",
-images: [],
-createdAt: "2026-09-01",
-updatedAt: "2026-09-01",
-},
-{
-id: "2",
-title: "Family House",
-description: "Spacious family house.",
-location: "Bole",
-price: 45000,
-status: "draft",
-images: [],
-createdAt: "2026-09-05",
-updatedAt: "2026-09-05",
-},
-];
-
 export default function OwnerPage() {
-const [properties, setProperties] =
-useState<Property[]>(initialProperties);
-
+const [properties, setProperties] = useState<Property[]>([]);
 const [isPublishing, setIsPublishing] = useState<string | null>(null);
 const [isDeleting, setIsDeleting] = useState<string | null>(null);
+
+const { user: authUser } = useAuth();
+const storeUser = useAuthStore((state) => state.user);
+const user = authUser || storeUser;
+
+const fetchProperties = useCallback(async () => {
+  try {
+    let ownerId = user?.id;
+    if (!ownerId) {
+      try {
+        const me = await authService.getCurrentUser();
+        ownerId = me?.id;
+      } catch {
+        // Not authenticated yet
+      }
+    }
+
+    if (!ownerId) return;
+
+    const response = await propertiesService.getOwnerProperties(ownerId, 1, 100);
+    setProperties(response.data ?? []);
+  } catch (err) {
+    console.error("Failed to load owner properties:", err);
+  }
+}, [user?.id]);
+
+useEffect(() => {
+  fetchProperties();
+}, [fetchProperties]);
 
 const publishedCount = properties.filter(
 (property) => property.status === "published",
@@ -64,26 +70,18 @@ const archivedCount = properties.filter(
 const handlePublish = async (propertyId: string) => {
 setIsPublishing(propertyId);
 
-
 try {
-  // We will connect this to:
-  // POST /properties/:id/publish
-
-  setProperties((current) =>
-    current.map((property) =>
-      property.id === propertyId
-        ? {
-            ...property,
-            status: "published",
-            updatedAt: new Date().toISOString(),
-          }
-        : property,
-    ),
+  await propertiesService.publishProperty(propertyId);
+  await fetchProperties();
+} catch (err: any) {
+  console.error("Failed to publish property:", err);
+  alert(
+    err?.response?.data?.message ||
+      "Failed to publish property. Ensure it has all required fields and at least one image.",
   );
 } finally {
   setIsPublishing(null);
 }
-
 
 };
 
@@ -92,7 +90,6 @@ const confirmed = window.confirm(
 "Are you sure you want to delete this property?",
 );
 
-
 if (!confirmed) {
   return;
 }
@@ -100,16 +97,14 @@ if (!confirmed) {
 setIsDeleting(propertyId);
 
 try {
-  // We will connect this to:
-  // DELETE /properties/:id
-
-  setProperties((current) =>
-    current.filter((property) => property.id !== propertyId),
-  );
+  await propertiesService.deleteProperty(propertyId);
+  await fetchProperties();
+} catch (err: any) {
+  console.error("Failed to delete property:", err);
+  alert(err?.response?.data?.message || "Failed to delete property.");
 } finally {
   setIsDeleting(null);
 }
-
 
 };
 
@@ -135,12 +130,21 @@ Owner Dashboard </h1>
         </p>
       </div>
 
-      <Link
-        href="/owner/create"
-        className="inline-flex items-center justify-center rounded-lg bg-black px-5 py-3 text-sm font-medium text-white transition hover:bg-gray-800"
-      >
-        + Create Property
-      </Link>
+      <div className="flex items-center gap-3">
+        <Link
+          href="/"
+          className="inline-flex items-center justify-center rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
+        >
+          🏠 Home Page
+        </Link>
+
+        <Link
+          href="/owner/create"
+          className="inline-flex items-center justify-center rounded-lg bg-black px-5 py-3 text-sm font-medium text-white transition hover:bg-gray-800"
+        >
+          + Create Property
+        </Link>
+      </div>
     </div>
 
     {/* Stats */}

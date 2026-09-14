@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { FormEvent, useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
+import { propertiesService } from "@/services/properties.service";
 
 interface Property {
 id: string;
@@ -27,38 +28,75 @@ const [description, setDescription] = useState("");
 const [location, setLocation] = useState("");
 const [price, setPrice] = useState("");
 const [images, setImages] = useState("");
-
+const [isUploading, setIsUploading] = useState(false);
 const [isLoading, setIsLoading] = useState(true);
 const [isSaving, setIsSaving] = useState(false);
 const [error, setError] = useState("");
 
-useEffect(() => {
-// Temporary mock property.
-// Later this will use:
-// GET /properties/:id
+const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const files = event.target.files;
+  if (!files || files.length === 0) return;
 
-const mockProperty: Property = {
-  id: propertyId,
-  title: "Family House",
-  description: "Spacious family house.",
-  location: "Bole",
-  price: 45000,
-  status: "draft",
-  images: [],
+  setError("");
+  const maxFileSize = 5 * 1024 * 1024; // 5MB
+  const allowedMimeTypes = ["image/jpeg", "image/png", "image/webp"];
+
+  for (let i = 0; i < files.length; i++) {
+    const file = files[i];
+    if (!allowedMimeTypes.includes(file.type)) {
+      setError(`Invalid image format for "${file.name}". Only JPEG, PNG, and WebP images are allowed.`);
+      return;
+    }
+    if (file.size > maxFileSize) {
+      setError(`File "${file.name}" exceeds the 5MB size limit.`);
+      return;
+    }
+  }
+
+  setIsUploading(true);
+  try {
+    const uploadedUrls = await propertiesService.uploadImages(Array.from(files));
+    setImages((prev) => {
+      const existing = prev ? prev.trim().split("\n").filter(Boolean) : [];
+      return [...existing, ...uploadedUrls].join("\n");
+    });
+  } catch (err: any) {
+    console.error("Upload error:", err);
+    setError(
+      err?.response?.data?.message ||
+        "Failed to upload image to cloud storage. Please try again or provide an external URL."
+    );
+  } finally {
+    setIsUploading(false);
+    event.target.value = "";
+  }
 };
 
-setProperty(mockProperty);
-setTitle(mockProperty.title);
-setDescription(mockProperty.description);
-setLocation(mockProperty.location);
-setPrice(String(mockProperty.price));
-setImages(mockProperty.images.join("\n"));
-setIsLoading(false);
+useEffect(() => {
+  const fetchProperty = async () => {
+    if (!propertyId) return;
+    try {
+      setIsLoading(true);
+      const data = await propertiesService.getProperty(propertyId);
+      setProperty(data);
+      setTitle(data.title || "");
+      setDescription(data.description || "");
+      setLocation(data.location || "");
+      setPrice(String(data.price || ""));
+      setImages((data.images || []).join("\n"));
+    } catch (err) {
+      console.error("Failed to load property:", err);
+      setError("Failed to load property details.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  fetchProperty();
 }, [propertyId]);
 
 const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
 event.preventDefault();
-
 
 setError("");
 
@@ -89,14 +127,23 @@ const imageUrls = images
   .map((image) => image.trim())
   .filter(Boolean);
 
+for (const url of imageUrls) {
+  try {
+    const parsed = new URL(url);
+    if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
+      setError(`Invalid image URL protocol: "${url}". Only HTTP and HTTPS URLs are allowed.`);
+      return;
+    }
+  } catch {
+    setError(`Invalid image URL format: "${url}"`);
+    return;
+  }
+}
+
 setIsSaving(true);
 
 try {
-  // We will connect this to:
-  // PUT /properties/:id
-
-  console.log({
-    id: propertyId,
+  await propertiesService.updateProperty(propertyId, {
     title,
     description,
     location,
@@ -105,8 +152,9 @@ try {
   });
 
   router.push("/owner");
-} catch {
-  setError("Failed to save changes. Please try again.");
+} catch (err: any) {
+  console.error("Failed to save changes:", err);
+  setError(err?.response?.data?.message || "Failed to save changes. Please try again.");
 } finally {
   setIsSaving(false);
 }
@@ -267,8 +315,25 @@ return ( <main className="min-h-screen bg-gray-50 px-4 py-8 sm:px-6 lg:px-8"> <d
           htmlFor="images"
           className="mb-2 block text-sm font-medium text-gray-700"
         >
-          Image URLs
+          Property Images (Cloud Upload or External URLs)
         </label>
+
+        <div className="mb-3 flex flex-wrap items-center gap-3">
+          <label className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm transition hover:bg-gray-50">
+            <span>{isUploading ? "Uploading to Cloud..." : "📁 Upload Image from Device (Max 5MB)"}</span>
+            <input
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              multiple
+              disabled={isUploading}
+              onChange={handleFileUpload}
+              className="hidden"
+            />
+          </label>
+          <span className="text-xs text-gray-500">
+            Allowed: JPG, PNG, WebP up to 5MB. Stored in Cloud Storage.
+          </span>
+        </div>
 
         <textarea
           id="images"
@@ -279,8 +344,31 @@ return ( <main className="min-h-screen bg-gray-50 px-4 py-8 sm:px-6 lg:px-8"> <d
         />
 
         <p className="mt-2 text-xs text-gray-500">
-          Add one image URL per line.
+          Upload images using the button above or paste external image URLs (one per line). All URLs are validated and optimized for production.
         </p>
+
+        {images.trim() && (
+          <div className="mt-3 flex flex-wrap gap-2">
+            {images
+              .split("\n")
+              .map((img) => img.trim())
+              .filter(Boolean)
+              .map((imgUrl, idx) => (
+                <div key={idx} className="relative h-16 w-16 overflow-hidden rounded-lg border bg-gray-100">
+                  <img
+                    src={imgUrl}
+                    alt={`Preview ${idx + 1}`}
+                    className="h-full w-full object-cover"
+                    onError={(e) => {
+                      e.currentTarget.onerror = null;
+                      e.currentTarget.src =
+                        "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64'%3E%3Crect fill='%23fee2e2' width='64' height='64'/%3E%3Ctext fill='%23ef4444' font-size='10' x='50%25' y='50%25' text-anchor='middle' dy='3'%3EInvalid%3C/text%3E%3C/svg%3E";
+                    }}
+                  />
+                </div>
+              ))}
+          </div>
+        )}
       </div>
 
       <div className="flex flex-col-reverse gap-3 border-t pt-6 sm:flex-row sm:justify-end">

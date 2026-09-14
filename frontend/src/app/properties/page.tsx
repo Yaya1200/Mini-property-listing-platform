@@ -86,6 +86,10 @@ Properties </h1>
                 src={property.images[0]}
                 alt={property.title}
                 className="h-52 w-full object-cover"
+                onError={(e) => {
+                  e.currentTarget.onerror = null;
+                  e.currentTarget.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300' viewBox='0 0 400 300'%3E%3Crect fill='%23e5e7eb' width='400' height='300'/%3E%3Ctext fill='%239ca3af' font-family='sans-serif' font-size='16' dy='10.5' font-weight='500' x='50%25' y='50%25' text-anchor='middle'%3EImage unavailable%3C/text%3E%3C/svg%3E";
+                }}
               />
             ) : (
               <div className="flex h-52 items-center justify-center bg-gray-200 text-gray-500">
