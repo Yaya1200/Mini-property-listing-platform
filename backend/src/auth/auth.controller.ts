@@ -7,6 +7,7 @@ export class RegisterDto {
   password!: string;
   name!: string;
   role?: string;
+  adminCode?: string;
 }
 
 export class LoginDto {
