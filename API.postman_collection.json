@@ -1,360 +1,599 @@
 {
-  "info": {
-    "_postman_id": "mini-property-listing-api",
-    "name": "Mini Property Listing Platform - API",
-    "description": "API documentation for the Property Listing Platform",
-    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
-  },
-  "item": [
-    {
-      "name": "Authentication",
-      "item": [
-        {
-          "name": "Register",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"securepassword123\",\n  \"name\": \"John Doe\",\n  \"role\": \"regular_user\"\n}"
-            },
-            "url": {
-              "raw": "http://localhost:3000/auth/register",
-              "protocol": "http",
-              "host": ["localhost"],
-              "port": "3000",
-              "path": ["auth", "register"]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Login",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"securepassword123\"\n}"
-            },
-            "url": {
-              "raw": "http://localhost:3000/auth/login",
-              "protocol": "http",
-              "host": ["localhost"],
-              "port": "3000",
-              "path": ["auth", "login"]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Get Current User",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer YOUR_JWT_TOKEN"
-              }
-            ],
-            "url": {
-              "raw": "http://localhost:3000/auth/me",
-              "protocol": "http",
-              "host": ["localhost"],
-              "port": "3000",
-              "path": ["auth", "me"]
-            }
-          },
-          "response": []
-        }
-      ]
-    },
-    {
-      "name": "Properties",
-      "item": [
-        {
-          "name": "Get All Properties",
-          "request": {
-            "method": "GET",
-            "url": {
-              "raw": "http://localhost:3000/properties?page=1&limit=10&location=New York&minPrice=100000&maxPrice=500000&status=published",
-              "protocol": "http",
-              "host": ["localhost"],
-              "port": "3000",
-              "path": ["properties"],
-              "query": [
-                {
-                  "key": "page",
-                  "value": "1"
-                },
-                {
-                  "key": "limit",
-                  "value": "10"
-                },
-                {
-                  "key": "location",
-                  "value": "New York",
-                  "disabled": true
-                },
-                {
-                  "key": "minPrice",
-                  "value": "100000",
-                  "disabled": true
-                },
-                {
-                  "key": "maxPrice",
-                  "value": "500000",
-                  "disabled": true
-                },
-                {
-                  "key": "status",
-                  "value": "published"
-                }
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Get Property by ID",
-          "request": {
-            "method": "GET",
-            "url": {
-              "raw": "http://localhost:3000/properties/PROPERTY_ID",
-              "protocol": "http",
-              "host": ["localhost"],
-              "port": "3000",
-              "path": ["properties", "PROPERTY_ID"]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Get Properties by Owner",
-          "request": {
-            "method": "GET",
-            "url": {
-              "raw": "http://localhost:3000/properties/owner/OWNER_ID?page=1&limit=10",
-              "protocol": "http",
-              "host": ["localhost"],
-              "port": "3000",
-              "path": ["properties", "owner", "OWNER_ID"],
-              "query": [
-                {
-                  "key": "page",
-                  "value": "1"
-                },
-                {
-                  "key": "limit",
-                  "value": "10"
-                }
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Create Property",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              },
-              {
-                "key": "Authorization",
-                "value": "Bearer YOUR_JWT_TOKEN"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"title\": \"Beautiful Apartment in Downtown\",\n  \"description\": \"Spacious 2-bedroom apartment with modern amenities\",\n  \"location\": \"New York, NY\",\n  \"price\": 250000,\n  \"images\": [\"https://example.com/image1.jpg\", \"https://example.com/image2.jpg\"]\n}"
-            },
-            "url": {
-              "raw": "http://localhost:3000/properties",
-              "protocol": "http",
-              "host": ["localhost"],
-              "port": "3000",
-              "path": ["properties"]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Update Property",
-          "request": {
-            "method": "PUT",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              },
-              {
-                "key": "Authorization",
-                "value": "Bearer YOUR_JWT_TOKEN"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"title\": \"Updated Title\",\n  \"price\": 275000\n}"
-            },
-            "url": {
-              "raw": "http://localhost:3000/properties/PROPERTY_ID",
-              "protocol": "http",
-              "host": ["localhost"],
-              "port": "3000",
-              "path": ["properties", "PROPERTY_ID"]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Publish Property",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer YOUR_JWT_TOKEN"
-              }
-            ],
-            "url": {
-              "raw": "http://localhost:3000/properties/PROPERTY_ID/publish",
-              "protocol": "http",
-              "host": ["localhost"],
-              "port": "3000",
-              "path": ["properties", "PROPERTY_ID", "publish"]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Delete Property",
-          "request": {
-            "method": "DELETE",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer YOUR_JWT_TOKEN"
-              }
-            ],
-            "url": {
-              "raw": "http://localhost:3000/properties/PROPERTY_ID",
-              "protocol": "http",
-              "host": ["localhost"],
-              "port": "3000",
-              "path": ["properties", "PROPERTY_ID"]
-            }
-          },
-          "response": []
-        }
-      ]
-    },
-    {
-      "name": "Favorites",
-      "item": [
-        {
-          "name": "Get User Favorites",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer YOUR_JWT_TOKEN"
-              }
-            ],
-            "url": {
-              "raw": "http://localhost:3000/favorites?page=1&limit=10",
-              "protocol": "http",
-              "host": ["localhost"],
-              "port": "3000",
-              "path": ["favorites"],
-              "query": [
-                {
-                  "key": "page",
-                  "value": "1"
-                },
-                {
-                  "key": "limit",
-                  "value": "10"
-                }
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Check if Favorited",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer YOUR_JWT_TOKEN"
-              }
-            ],
-            "url": {
-              "raw": "http://localhost:3000/favorites/PROPERTY_ID/check",
-              "protocol": "http",
-              "host": ["localhost"],
-              "port": "3000",
-              "path": ["favorites", "PROPERTY_ID", "check"]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Add Favorite",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer YOUR_JWT_TOKEN"
-              }
-            ],
-            "url": {
-              "raw": "http://localhost:3000/favorites/PROPERTY_ID",
-              "protocol": "http",
-              "host": ["localhost"],
-              "port": "3000",
-              "path": ["favorites", "PROPERTY_ID"]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Remove Favorite",
-          "request": {
-            "method": "DELETE",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer YOUR_JWT_TOKEN"
-              }
-            ],
-            "url": {
-              "raw": "http://localhost:3000/favorites/PROPERTY_ID",
-              "protocol": "http",
-              "host": ["localhost"],
-              "port": "3000",
-              "path": ["favorites", "PROPERTY_ID"]
-            }
-          },
-          "response": []
-        }
-      ]
-    }
-  ]
+"info": {
+"_postman_id": "mini-property-listing-platform",
+"name": "Mini Property Listing Platform - API",
+"description": "Postman collection for the Mini Multi-Tenant Property Listing Platform. Set the baseUrl variable to the backend URL before testing.",
+"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+},
+"variable": [
+{
+"key": "baseUrl",
+"value": "http://localhost:3003"
+},
+{
+"key": "jwtToken",
+"value": "YOUR_JWT_TOKEN"
+},
+{
+"key": "propertyId",
+"value": "PROPERTY_ID"
+},
+{
+"key": "ownerId",
+"value": "OWNER_ID"
+}
+],
+"item": [
+{
+"name": "Authentication",
+"item": [
+{
+"name": "Register",
+"request": {
+"method": "POST",
+"header": [
+{
+"key": "Content-Type",
+"value": "application/json"
+}
+],
+"body": {
+"mode": "raw",
+"raw": "{\n  "name": "John Doe",\n  "email": "[john@example.com](mailto:john@example.com)",\n  "password": "Password123!",\n  "role": "regular_user"\n}"
+},
+"url": {
+"raw": "{{baseUrl}}/auth/register",
+"host": [
+"{{baseUrl}}"
+],
+"path": [
+"auth",
+"register"
+]
+}
+}
+},
+{
+"name": "Login",
+"request": {
+"method": "POST",
+"header": [
+{
+"key": "Content-Type",
+"value": "application/json"
+}
+],
+"body": {
+"mode": "raw",
+"raw": "{\n  "email": "[john@example.com](mailto:john@example.com)",\n  "password": "Password123!"\n}"
+},
+"url": {
+"raw": "{{baseUrl}}/auth/login",
+"host": [
+"{{baseUrl}}"
+],
+"path": [
+"auth",
+"login"
+]
+}
+}
+},
+{
+"name": "Get Current User",
+"request": {
+"method": "GET",
+"header": [
+{
+"key": "Authorization",
+"value": "Bearer {{jwtToken}}"
+}
+],
+"url": {
+"raw": "{{baseUrl}}/auth/me",
+"host": [
+"{{baseUrl}}"
+],
+"path": [
+"auth",
+"me"
+]
+}
+}
+}
+]
+},
+{
+"name": "Properties - Public",
+"item": [
+{
+"name": "Get Published Properties",
+"request": {
+"method": "GET",
+"url": {
+"raw": "{{baseUrl}}/properties?page=1&limit=10&location=New%20York&minPrice=100000&maxPrice=500000&status=published",
+"host": [
+"{{baseUrl}}"
+],
+"path": [
+"properties"
+],
+"query": [
+{
+"key": "page",
+"value": "1"
+},
+{
+"key": "limit",
+"value": "10"
+},
+{
+"key": "location",
+"value": "New York"
+},
+{
+"key": "minPrice",
+"value": "100000"
+},
+{
+"key": "maxPrice",
+"value": "500000"
+},
+{
+"key": "status",
+"value": "published"
+}
+]
+}
+}
+},
+{
+"name": "Get Property by ID",
+"request": {
+"method": "GET",
+"url": {
+"raw": "{{baseUrl}}/properties/{{propertyId}}",
+"host": [
+"{{baseUrl}}"
+],
+"path": [
+"properties",
+"{{propertyId}}"
+]
+}
+}
+}
+]
+},
+{
+"name": "Properties - Owner",
+"item": [
+{
+"name": "Get My Properties",
+"request": {
+"method": "GET",
+"header": [
+{
+"key": "Authorization",
+"value": "Bearer {{jwtToken}}"
+}
+],
+"url": {
+"raw": "{{baseUrl}}/properties/owner/{{ownerId}}?page=1&limit=10",
+"host": [
+"{{baseUrl}}"
+],
+"path": [
+"properties",
+"owner",
+"{{ownerId}}"
+],
+"query": [
+{
+"key": "page",
+"value": "1"
+},
+{
+"key": "limit",
+"value": "10"
+}
+]
+}
+}
+},
+{
+"name": "Create Property",
+"request": {
+"method": "POST",
+"header": [
+{
+"key": "Authorization",
+"value": "Bearer {{jwtToken}}"
+},
+{
+"key": "Content-Type",
+"value": "application/json"
+}
+],
+"body": {
+"mode": "raw",
+"raw": "{\n  "title": "Modern Family Home",\n  "description": "A spacious family home in a convenient location.",\n  "location": "Addis Ababa",\n  "price": 250000,\n  "images": []\n}"
+},
+"url": {
+"raw": "{{baseUrl}}/properties",
+"host": [
+"{{baseUrl}}"
+],
+"path": [
+"properties"
+]
+}
+}
+},
+{
+"name": "Update Property",
+"request": {
+"method": "PUT",
+"header": [
+{
+"key": "Authorization",
+"value": "Bearer {{jwtToken}}"
+},
+{
+"key": "Content-Type",
+"value": "application/json"
+}
+],
+"body": {
+"mode": "raw",
+"raw": "{\n  "title": "Updated Property Title",\n  "description": "Updated property description.",\n  "location": "Addis Ababa",\n  "price": 275000\n}"
+},
+"url": {
+"raw": "{{baseUrl}}/properties/{{propertyId}}",
+"host": [
+"{{baseUrl}}"
+],
+"path": [
+"properties",
+"{{propertyId}}"
+]
+}
+}
+},
+{
+"name": "Publish Property",
+"request": {
+"method": "POST",
+"header": [
+{
+"key": "Authorization",
+"value": "Bearer {{jwtToken}}"
+}
+],
+"url": {
+"raw": "{{baseUrl}}/properties/{{propertyId}}/publish",
+"host": [
+"{{baseUrl}}"
+],
+"path": [
+"properties",
+"{{propertyId}}",
+"publish"
+]
+}
+}
+},
+{
+"name": "Delete Property",
+"request": {
+"method": "DELETE",
+"header": [
+{
+"key": "Authorization",
+"value": "Bearer {{jwtToken}}"
+}
+],
+"url": {
+"raw": "{{baseUrl}}/properties/{{propertyId}}",
+"host": [
+"{{baseUrl}}"
+],
+"path": [
+"properties",
+"{{propertyId}}"
+]
+}
+}
+},
+{
+"name": "Upload Property Image",
+"request": {
+"method": "POST",
+"header": [
+{
+"key": "Authorization",
+"value": "Bearer {{jwtToken}}"
+}
+],
+"body": {
+"mode": "formdata",
+"formdata": [
+{
+"key": "file",
+"type": "file",
+"src": []
+}
+]
+},
+"url": {
+"raw": "{{baseUrl}}/properties/upload",
+"host": [
+"{{baseUrl}}"
+],
+"path": [
+"properties",
+"upload"
+]
+}
+}
+},
+{
+"name": "Upload Multiple Property Images",
+"request": {
+"method": "POST",
+"header": [
+{
+"key": "Authorization",
+"value": "Bearer {{jwtToken}}"
+}
+],
+"body": {
+"mode": "formdata",
+"formdata": [
+{
+"key": "files",
+"type": "file",
+"src": []
+}
+]
+},
+"url": {
+"raw": "{{baseUrl}}/properties/upload-multiple",
+"host": [
+"{{baseUrl}}"
+],
+"path": [
+"properties",
+"upload-multiple"
+]
+}
+}
+}
+]
+},
+{
+"name": "Favorites",
+"item": [
+{
+"name": "Get User Favorites",
+"request": {
+"method": "GET",
+"header": [
+{
+"key": "Authorization",
+"value": "Bearer {{jwtToken}}"
+}
+],
+"url": {
+"raw": "{{baseUrl}}/favorites?page=1&limit=10",
+"host": [
+"{{baseUrl}}"
+],
+"path": [
+"favorites"
+],
+"query": [
+{
+"key": "page",
+"value": "1"
+},
+{
+"key": "limit",
+"value": "10"
+}
+]
+}
+}
+},
+{
+"name": "Check Favorite",
+"request": {
+"method": "GET",
+"header": [
+{
+"key": "Authorization",
+"value": "Bearer {{jwtToken}}"
+}
+],
+"url": {
+"raw": "{{baseUrl}}/favorites/{{propertyId}}/check",
+"host": [
+"{{baseUrl}}"
+],
+"path": [
+"favorites",
+"{{propertyId}}",
+"check"
+]
+}
+}
+},
+{
+"name": "Add Favorite",
+"request": {
+"method": "POST",
+"header": [
+{
+"key": "Authorization",
+"value": "Bearer {{jwtToken}}"
+}
+],
+"url": {
+"raw": "{{baseUrl}}/favorites/{{propertyId}}",
+"host": [
+"{{baseUrl}}"
+],
+"path": [
+"favorites",
+"{{propertyId}}"
+]
+}
+}
+},
+{
+"name": "Remove Favorite",
+"request": {
+"method": "DELETE",
+"header": [
+{
+"key": "Authorization",
+"value": "Bearer {{jwtToken}}"
+}
+],
+"url": {
+"raw": "{{baseUrl}}/favorites/{{propertyId}}",
+"host": [
+"{{baseUrl}}"
+],
+"path": [
+"favorites",
+"{{propertyId}}"
+]
+}
+}
+}
+]
+},
+{
+"name": "Admin",
+"item": [
+{
+"name": "Get All Properties",
+"request": {
+"method": "GET",
+"header": [
+{
+"key": "Authorization",
+"value": "Bearer {{jwtToken}}"
+}
+],
+"url": {
+"raw": "{{baseUrl}}/properties/admin/all?page=1&limit=10",
+"host": [
+"{{baseUrl}}"
+],
+"path": [
+"properties",
+"admin",
+"all"
+],
+"query": [
+{
+"key": "page",
+"value": "1"
+},
+{
+"key": "limit",
+"value": "10"
+}
+]
+}
+}
+},
+{
+"name": "Get Admin Metrics",
+"request": {
+"method": "GET",
+"header": [
+{
+"key": "Authorization",
+"value": "Bearer {{jwtToken}}"
+}
+],
+"url": {
+"raw": "{{baseUrl}}/properties/admin/metrics",
+"host": [
+"{{baseUrl}}"
+],
+"path": [
+"properties",
+"admin",
+"metrics"
+]
+}
+}
+},
+{
+"name": "Disable Property",
+"request": {
+"method": "PATCH",
+"header": [
+{
+"key": "Authorization",
+"value": "Bearer {{jwtToken}}"
+}
+],
+"url": {
+"raw": "{{baseUrl}}/properties/admin/{{propertyId}}/disable",
+"host": [
+"{{baseUrl}}"
+],
+"path": [
+"properties",
+"admin",
+"{{propertyId}}",
+"disable"
+]
+}
+}
+}
+]
+},
+{
+"name": "Contact",
+"item": [
+{
+"name": "Contact Property Owner",
+"request": {
+"method": "POST",
+"header": [
+{
+"key": "Authorization",
+"value": "Bearer {{jwtToken}}"
+},
+{
+"key": "Content-Type",
+"value": "application/json"
+}
+],
+"body": {
+"mode": "raw",
+"raw": "{\n  "message": "I am interested in this property. Please contact me."\n}"
+},
+"url": {
+"raw": "{{baseUrl}}/properties/{{propertyId}}/contact",
+"host": [
+"{{baseUrl}}"
+],
+"path": [
+"properties",
+"{{propertyId}}",
+"contact"
+]
+}
+}
+}
+]
+}
+]
 }
