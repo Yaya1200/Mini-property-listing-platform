@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { useAddFavorite, useRemoveFavorite, useIsFavorite } from '@/hooks/useFavorites';
 import { Property } from '@/services/properties.service';
 import Image from 'next/image';
@@ -26,16 +27,20 @@ export function PropertyCard({ property }: PropertyCardProps) {
     }
   };
 
+  const [imageError, setImageError] = useState(false);
+
   return (
     <Link href={`/properties/${property.id}`}>
       <div className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
         {/* Image container */}
         <div className="relative h-48 bg-gray-200">
-          {property.images.length > 0 ? (
+          {property.images.length > 0 && !imageError ? (
             <Image
               src={property.images[0]}
               alt={property.title}
               fill
+              unoptimized
+              onError={() => setImageError(true)}
               className="object-cover"
             />
           ) : (
